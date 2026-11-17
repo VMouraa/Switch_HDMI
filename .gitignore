@@ -1,0 +1,65 @@
+# Ambientes e caches Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Empacotamento, binários de terceiros e arquivos temporários
+build/
+dist/
+*.egg-info/
+*.exe
+*.dll
+*.pyd
+*.msi
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# Logs e inventários locais de hardware
+logs/
+*.log
+/monitors*.csv
+/monitor_inventory*.csv
+MultiMonitorTool.cfg
+multimonitortool_lng.ini
+
+# Configurações locais; somente o exemplo sanitizado é publicado
+/config.json
+/config.*.json
+!/config.example.json
+*.local.json
+*.local.yaml
+*.local.yml
+.env
+.env.*
+!.env.example
+secrets/
+private/
+local/
+*.pem
+*.key
+*.p12
+*.pfx
+.aws/
+.ssh/
+.codex/
+.agents/
+
+# Preferências pessoais de IDE e arquivos do sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+

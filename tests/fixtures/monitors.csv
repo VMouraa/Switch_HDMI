@@ -1,0 +1,4 @@
+Name,Monitor ID,Monitor Name,Monitor Serial Number,Active,Primary,Disconnected,Resolution,Left-Top,Right-Bottom,Orientation,Frequency,Colors
+\\.\DISPLAY1,MONITOR\SIM0001\{4d36e96e-e325-11ce-bfc1-08002be10318}\0001,Principal SIMULADO,SIM-001,Yes,Yes,No,1920 X 1080,"0, 0","1920, 1080",Default,60,32
+\\.\DISPLAY2,MONITOR\SIM0002\{4d36e96e-e325-11ce-bfc1-08002be10318}\0002,Secundario SIMULADO,SIM-002,Yes,No,No,1920 X 1080,"1920, 0","3840, 1080",Default,60,32
+\\.\DISPLAY3,MONITOR\SIM0003\{4d36e96e-e325-11ce-bfc1-08002be10318}\0003,Reserva SIMULADA,SIM-003,No,No,No,1920 X 1080,"3840, 0","5760, 1080",Default,60,32

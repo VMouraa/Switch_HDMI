@@ -1,0 +1,19 @@
+{
+  "simulation_mode": true,
+  "ps5_ip": null,
+  "check_interval_seconds": 2.0,
+  "network": {
+    "discovery_port": 9302,
+    "timeout_seconds": 1.5,
+    "retries": 1,
+    "local_ip": "0.0.0.0",
+    "local_port": 9303
+  },
+  "simulator": {
+    "states": ["OFF", "ON", "REST", "ON", "OFF"],
+    "repeat": false
+  },
+  "logging": {
+    "file": "logs/ps5_detector.log"
+  }
+}
