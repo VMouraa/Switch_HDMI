@@ -1,0 +1,19 @@
+{
+  "simulation_mode": true,
+  "ps5_ip": null,
+  "check_interval_seconds": 0.25,
+  "network": {
+    "discovery_port": 9302,
+    "timeout_seconds": 1.5,
+    "retries": 1,
+    "local_ip": "0.0.0.0",
+    "local_port": 9303
+  },
+  "simulator": {
+    "states": ["OFF", "ON", "ON", "ON", "REST", "REST", "REST", "OFF"],
+    "repeat": false
+  },
+  "logging": {
+    "file": "../logs/automation_simulation.log"
+  }
+}

@@ -1,12 +1,13 @@
 # PS5 Auto Switch
 
 Projeto em Python para consultar o estado de um PS5 e desenvolver, em etapas,
-o controle de monitores no Windows 11. A versão atual corresponde à **Etapa 3.1**:
-há um simulador, um detector DDP e um módulo manual de monitores independente.
-**A integração automática entre PS5 e monitores ainda não foi implementada.**
+o controle de monitores no Windows 11. A versão atual corresponde à **Etapa 3.2**:
+há um simulador, um detector DDP, controle manual de monitores e uma integração
+opcional com confirmação de estados. **A integração só inicia por comando
+explícito e usa `dry_run=True` por padrão.**
 
 O exemplo de configuração inicia em simulação, sem consultar a rede. O controle
-manual de monitores usa `dry_run=True` por padrão: registra a intenção sem
+manual ou integrado de monitores usa `dry_run=True` por padrão: registra a intenção sem
 habilitar ou desabilitar dispositivos. Não há inicialização automática do
 Windows, instalador ou executável do projeto.
 
@@ -22,7 +23,8 @@ Windows, instalador ou executável do projeto.
 | Recuperação após ausência prolongada | Somente contrato para política futura e histórico passivo | Nenhuma política ou ação de recuperação ativa |
 | Inventário de monitores | IDs completos, nomes, seriais, estado e layout via adaptador MultiMonitorTool | CSV e processos simulados; exportação real pendente |
 | Habilitar/desabilitar monitor manualmente | Seleção por ID completo, `dry_run`, proteção do principal e do último ativo, revalidação e verificação | Monitores simulados; operações físicas pendentes |
-| Automação PS5 → monitores | Não implementada | Etapa 3.2 não iniciada |
+| Integração PS5 → monitor selecionado | ON solicita desabilitação e REST habilitação após pelo menos duas leituras; UNKNOWN não executa ações; duplicatas suprimidas | Testes simulados de ponta a ponta; hardware real pendente |
+| Recuperação por OFF | Requer fonte confiável por leitura ou política OFF explícita; desativada por padrão | Testes simulados; não se aplica a timeout/UNKNOWN |
 
 O detector real não confirma `OFF`: a ausência de resposta também pode ser
 causada por rede, firewall ou opções de repouso. Ele não autentica, pareia,
@@ -49,7 +51,9 @@ PS5-Auto-Switch/
 ├── docs/
 │   ├── ETAPA2.2.md           # Detector DDP, decisões e validação no PC
 │   ├── ETAPA3.1.md           # Controle manual, proteções e limitações
-│   └── PUBLICACAO.md         # Relatório de preparação para o GitHub
+│   └── ETAPA3.2.md           # Integração, confirmação e autorização física
+├── examples/
+│   └── automation-simulation.json # Demonstração segura da integração
 ├── switch_hdmi/              # Nome do pacote Python preservado
 │   ├── __main__.py           # CLI de estados do PS5
 │   ├── config.py             # Validação e compatibilidade de configurações
@@ -61,7 +65,9 @@ PS5-Auto-Switch/
 │   ├── recovery.py           # Contrato de política futura, sem execução
 │   ├── displays.py           # Modelo e controlador manual de monitores
 │   ├── multimonitor_tool.py  # Adaptador e parser de inventário CSV
-│   └── display_control.py    # CLI manual de monitores, separada do PS5
+│   ├── display_control.py    # CLI manual de monitores, separada do PS5
+│   ├── automation.py         # Decisões e laço de automação
+│   └── automation_control.py # Entrada explícita para a integração
 └── tests/
     ├── fixtures/monitors.csv # Inventário sintético, sem IDs do PC
     └── test_*.py
@@ -69,8 +75,9 @@ PS5-Auto-Switch/
 
 Os detectores compartilham `StateDetector.read_state() -> PS5State`. O monitor
 de estados depende dessa interface. O controle de telas usa outra interface,
-`DisplayBackend`, com validações em `DisplayController`; não está conectado
-ao detector ou à política futura de recuperação.
+`DisplayBackend`, com validações em `DisplayController`. A integração é composta
+separadamente por `AutomationController` e `AutomationRunner`; o comando antigo
+de consulta e o controle manual mantêm seu funcionamento independente.
 
 ## Instalação
 
@@ -149,6 +156,33 @@ entrega. O backend exige um caminho absoluto de MultiMonitorTool fornecido
 pelo usuário. Consulte [a Etapa 3.1](docs/ETAPA3.1.md) para inventário ao vivo,
 prévia, requisitos de CSV, proteções e riscos de mudanças de layout/hotplug.
 
+## Integração PS5 e monitor (Etapa 3.2)
+
+Para executar a integração apenas com estados e monitores sintéticos:
+
+```powershell
+$monitorId = 'MONITOR\SIM0002\{4d36e96e-e325-11ce-bfc1-08002be10318}\0002'
+.\.venv\Scripts\python.exe -m switch_hdmi.automation_control --config .\examples\automation-simulation.json --inventory-csv .\tests\fixtures\monitors.csv --monitor-id $monitorId --max-polls 8
+```
+
+O exemplo contém leituras ON e REST repetidas para validar a confirmação. As
+duas intenções são registradas em `logs/automation_simulation.log`; nenhuma
+alteração física ou do CSV é executada. O exemplo padrão antigo continua
+válido; nele ON/REST isolados não confirmam ações.
+
+`UNKNOWN` interrompe confirmações e mantém a tela sem ações. OFF também é
+ignorado por padrão; `--allow-off-recovery` é uma política explícita somente
+para OFF confirmado e nunca transforma timeout em OFF. `--confirmations` pode
+aumentar o limite, mas não reduzi-lo abaixo de dois.
+
+O controle físico exige `--execute`, detector real e `--tool`; é bloqueado com
+simulador ou CSV offline. As proteções de principal, último ativo e IDs
+ambíguos permanecem. Uma falha de controle suspende a execução sem repetir
+ou compensar comandos. Ctrl+C encerra e fecha o log, sem reativação automática
+na saída. A atuação com hardware real ainda não foi validada.
+
+Veja regras, opções, API de parada e limitações em [ETAPA3.2.md](docs/ETAPA3.2.md).
+
 ## Executar os testes
 
 Depois de preparar o `config.json` local:
@@ -157,18 +191,18 @@ Depois de preparar o `config.json` local:
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-Resultado da preparação para publicação: **137 testes aprovados**.
+Resultado da Etapa 3.2: **188 testes aprovados**.
 Os testes usam arquivos temporários, sockets e processos simulados. Não exigem
 PS5, MultiMonitorTool instalado ou acesso às configurações de vídeo, e não
 habilitam/desabilitam monitores físicos. Os 86 testes das etapas do detector
-e os 51 testes de monitores permanecem preservados.
+e os 51 testes de monitores permanecem preservados, com 51 testes novos
+de automação e integração, incluindo DDP simulado até telas em memória.
 
 ## Documentação e publicação
 
 - [Etapa 2.2](docs/ETAPA2.2.md): protocolo, histórico passivo e validação do PS5.
 - [Etapa 3.1](docs/ETAPA3.1.md): backend de monitores, proteções e limitações.
-- [Preparação para o GitHub](docs/PUBLICACAO.md): revisão de arquivos, privacidade,
-  testes e estado do Git antes de commit ou push.
+- [Etapa 3.2](docs/ETAPA3.2.md): integração, confirmações, falhas e parada segura.
 
 O `.gitignore` exclui ambientes, caches, build/dist, logs, binários temporários,
 configurações locais, inventários locais e arquivos comuns de segredos. Publique
@@ -177,5 +211,6 @@ de série do seu PC nos arquivos locais ignorados. A documentação histórica d
 etapas foi preservada: onde ela menciona `config.json`, use a cópia local criada
 na instalação acima.
 
-O projeto permanece na Etapa 3.1. A Etapa 3.2, a integração automática de telas,
-a inicialização com Windows e a geração de executável não foram iniciadas.
+O projeto permanece na Etapa 3.2, aguardando revisão. A Etapa 3.3, a inicialização
+com Windows e a geração de executável não foram iniciadas. Commit e push não
+são realizados automaticamente.
